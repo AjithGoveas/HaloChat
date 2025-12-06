@@ -1,8 +1,8 @@
 import { WebSocketServer } from 'ws';
-import { log, err } from '../utils/logger.js';
 import { messageRepo } from '../repositories/MessageRepository.js';
 import { roomRepo } from '../repositories/RoomRepository.js';
-import { registerUserSocket, broadcastToUser, broadcastToAll } from '../state/connections.js';
+import { broadcastToUser, registerUserSocket } from '../state/connections.js';
+import { err, log } from '../utils/logger.js';
 import { verifyUserToken } from './auth.js';
 
 function parseJson(raw) {
@@ -13,8 +13,18 @@ function parseJson(raw) {
 	}
 }
 
-export function createWsServer({ port }) {
-	const wss = new WebSocketServer({ port });
+export function createWsServer({ server, port } = {}) {
+	let wss;
+
+	if (server) {
+		// Attach to an existing HTTP or HTTPS server (preferred for TLS / proxy setups)
+		wss = new WebSocketServer({ server });
+	} else if (port) {
+		// Fall back to listening directly on a port (non-TLS)
+		wss = new WebSocketServer({ port });
+	} else {
+		throw new Error('createWsServer requires either { server } or { port }');
+	}
 
 	wss.on('connection', (ws) => {
 		log('Client connected');
@@ -180,6 +190,11 @@ export function createWsServer({ port }) {
 		ws.on('close', () => log('Client disconnected'));
 	});
 
-	log(`WS listening on ws://localhost:${port}`);
+	if (port) {
+		log(`WS listening on ws://localhost:${port}`);
+	} else {
+		log('WS attached to existing server (use wss:// when the server has TLS)');
+	}
+
 	return wss;
 }
