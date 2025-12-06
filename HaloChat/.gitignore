@@ -1,17 +1,97 @@
-*.iml
-.gradle
-/local.properties
-/secrets.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Android / Kotlin / Java / Gradle - recommended ignores
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+output-metadata.json
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+**/build/
+
+# Gradle
+.gradle/
+# Keep wrapper jar tracked if present, but ignore other wrapper artifacts if needed
+gradle/wrapper/gradle-wrapper.properties
+gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration files (sdk path, secrets, etc)
 local.properties
 secrets.properties
+keystore.properties
+*.env
+.env.local
+.env.*.local
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (Firebase, APIs)
+google-services.json
+google-services.json.enc
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+.idea/**/workspace.xml
+.idea/**/caches/
+.idea/**/libraries/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+navEditor.xml
+assetWizardSettings.xml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+
+# Native / NDK
+.externalNativeBuild/
+.cxx/
+obj/
+*.so
+
+# Profiling
+*.hprof
+
+# ProGuard / R8
+/proguard/
+proguard/
+
+# IDE run configs
+*.run.xml
+
+# Kotlin
+*.kotlin_module
+
+# Editor swap / backup files
+*~ 
+*.swp
+*.swo
+*.bak
+
+# Misc
+captures/
+output/
+signing_reports/
+
+# Ignore Gradle test kit cache (if present)
+.gradle-test-kit/
+
+# End of file
