@@ -1,83 +1,77 @@
 import { supabase } from '../config/supabase.js';
 import { Message } from '../models/Message.js';
-import { log, err } from '../utils/logger.js';
+import { Room } from '../models/Room.js';
+import { err, log } from '../utils/logger.js';
 
 export const messageRepo = {
-	async insertDm({ sender, recipient, text }) {
+	async insertDm({ sender, recipient, text, type = 'text', metadata = {} }) {
 		const { data, error } = await supabase
 			.from('messages')
-			.insert({ sender, recipient, text, status: 'sent' })
+			.insert({ kind: 'dm', sender, recipient, text, type, metadata })
 			.select()
 			.single();
 		if (error) {
 			err('insertDm error:', error);
 			throw error;
 		}
-		log('DM inserted:', data.id);
+		log('insertDm:', data.id);
 		return new Message(data);
 	},
 
-	async insertRoom({ sender, room_id, text }) {
+	async insertRoom({ sender, room_id, text, type = 'text', metadata = {} }) {
 		const { data, error } = await supabase
 			.from('messages')
-			.insert({ sender, room_id, text, status: 'sent' })
+			.insert({ kind: 'room', sender, room_id, text, type, metadata })
 			.select()
 			.single();
 		if (error) {
 			err('insertRoom error:', error);
 			throw error;
 		}
-		log('Room msg inserted:', data.id);
+		log('insertRoom:', data.id);
 		return new Message(data);
 	},
 
-	async updateStatus(id, status) {
-		const { data, error } = await supabase.from('messages').update({ status }).eq('id', id).select().single();
-		if (error) {
-			err('updateStatus error:', error);
-			throw error;
-		}
-		return new Message(data);
-	},
-
-	async addReadReceipt(messageId, reader) {
-		const { data, error } = await supabase
-			.from('read_receipts')
-			.insert({ message_id: messageId, reader })
-			.select()
-			.single();
-		if (error) {
-			err('addReadReceipt error:', error);
-			throw error;
-		}
-		return data;
-	},
-
-	async listDm(peerA, peerB, limit = 100) {
-		const { data, error } = await supabase
+	async listDm(peerA, peerB, since, limit = 100) {
+		let query = supabase
 			.from('messages')
 			.select('*')
-			.or(`and(sender.eq.${peerA},recipient.eq.${peerB}),and(sender.eq.${peerB},recipient.eq.${peerA})`)
-			.order('created_at', { ascending: false })
-			.limit(limit);
+			.eq('kind', 'dm')
+			.or(`and(sender.eq.${peerA},recipient.eq.${peerB}),and(sender.eq.${peerB},recipient.eq.${peerA})`);
+		if (since) query = query.gt('created_at', since);
+		query = query.order('created_at', { ascending: true }).limit(limit);
+		const { data, error } = await query;
 		if (error) {
 			err('listDm error:', error);
 			throw error;
 		}
-		return (data ?? []).map((row) => new Message(row));
+		log('listDm:', data.length);
+		return (data ?? []).map((r) => new Message(r));
 	},
 
-	async listRoom(roomId, limit = 100) {
-		const { data, error } = await supabase
-			.from('messages')
-			.select('*')
-			.eq('room_id', roomId)
-			.order('created_at', { ascending: false })
-			.limit(limit);
+	async listRoom(room_id, since, limit = 100) {
+		let query = supabase.from('messages').select('*').eq('kind', 'room').eq('room_id', room_id);
+		if (since) query = query.gt('created_at', since);
+		query = query.order('created_at', { ascending: true }).limit(limit);
+		const { data, error } = await query;
 		if (error) {
 			err('listRoom error:', error);
 			throw error;
 		}
-		return (data ?? []).map((row) => new Message(row));
+		log('listRoom:', data.length);
+		return (data ?? []).map((r) => new Room(r));
+	},
+
+	async update({ id, text, deleted_at, metadata }) {
+		const payload = {};
+		if (text !== undefined) payload.text = text;
+		if (deleted_at !== undefined) payload.deleted_at = deleted_at;
+		if (metadata !== undefined) payload.metadata = metadata;
+		const { data, error } = await supabase.from('messages').update(payload).eq('id', id).select().single();
+		if (error) {
+			err('update message error:', error);
+			throw error;
+		}
+		return new Message(data);
 	},
 };
