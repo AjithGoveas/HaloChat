@@ -1,11 +1,14 @@
 import { supabase } from '../config/supabase.js';
 import { Room } from '../models/Room.js';
-import { RoomMember } from '../models/RoomMember.js';
 import { log, err } from '../utils/logger.js';
 
 export const roomRepo = {
-	async create(name) {
-		const { data, error } = await supabase.from('rooms').insert({ name }).select().single();
+	async create({ name, created_by, is_private = false, avatar_url }) {
+		const { data, error } = await supabase
+			.from('rooms')
+			.insert({ name, created_by, is_private, avatar_url })
+			.select()
+			.single();
 		if (error) {
 			err('create room error:', error);
 			throw error;
@@ -14,30 +17,13 @@ export const roomRepo = {
 		return new Room(data);
 	},
 
-	async addMember(room_id, user_id) {
-		const { data, error } = await supabase.from('room_members').insert({ room_id, user_id }).select().single();
+	async listRooms() {
+		const { data, error } = await supabase.from('rooms').select('*');
 		if (error) {
-			err('addMember error:', error);
+			err('listRooms error:', error);
 			throw error;
 		}
-		return new RoomMember(data);
-	},
-
-	async removeMember(room_id, user_id) {
-		const { error } = await supabase.from('room_members').delete().eq('room_id', room_id).eq('user_id', user_id);
-		if (error) {
-			err('removeMember error:', error);
-			throw error;
-		}
-		return true;
-	},
-
-	async listMembers(room_id) {
-		const { data, error } = await supabase.from('room_members').select('*').eq('room_id', room_id);
-		if (error) {
-			err('listMembers error:', error);
-			throw error;
-		}
-		return (data ?? []).map((r) => new RoomMember(r));
+		log('listRooms:', data.length);
+		return (data ?? []).map((r) => new Room(r));
 	},
 };

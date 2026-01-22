@@ -1,4 +1,4 @@
-package dev.ajithgoveas.halochat.presentation.screens.chat
+package dev.ajithgoveas.halochat.feature.chat.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +38,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.ajithgoveas.halochat.R
 import dev.ajithgoveas.halochat.core.utils.formatTime
 import dev.ajithgoveas.halochat.domain.model.Message
-import dev.ajithgoveas.halochat.presentation.theme.HaloChatTheme
+import dev.ajithgoveas.halochat.core.design.theme.HaloChatTheme
+import dev.ajithgoveas.halochat.feature.chat.viewmodel.ChatViewModel
 
 // Let's have a dummy message conversation for now
 // In a real app, this would be replaced with a list of messages from a ViewModel
